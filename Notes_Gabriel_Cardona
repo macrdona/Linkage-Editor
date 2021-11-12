@@ -1,0 +1,35 @@
+Notes on my code
+Date: 11/11/2021
+
+Variables:
+- load_point:
+    Based on the description from the pseudo code "Get address from operating system",
+    I think it means the address where we want to load our program. For now, I will assumethat this address is 0, thus:
+        - int load_point = 0;
+        - load_point (This variable represents 'CSADDR' in the pseudocode found in the LinkersAndLoaders pdf, page 21-22)
+
+- decimal_load_point:
+    Is the decimal representation of load_point which we need for other calculations. 
+
+- nameBeginIndex, nameEndIndex, addressBeginIndex , addressEndIndex 
+    The values in these variables specify what position to start looking for the symbol name and address in the 'D record'
+
+- recordD_length
+    Is the number of character in the D record, without counting the 'D' character
+
+Methods:
+- AddSymbol:
+    Adds new symbols to the external symbol table
+
+- SymbolExists
+    Checks if symbol already exists in the table
+
+- AddToTable 
+    Calls the functions AddSymbol and SymbolExists, to prevent repeating code multiple 
+
+Other details:
+The comment "//Column 2 to 7 has the name of the program", refers to 
+the specification on the 'Object File Format (SCOFF)' document. It states that, for example, between colunmn 2-7 the Name of external symbol defined in this object file. So I am grabbing the name of the external symbol from that postion in the record. 
+
+The comment "//calculating new address based on load_point", it refers to 
+(CSADDR + indicated address) in the pseudocode found in the LinkersAndLoaders pdf, page 21-22

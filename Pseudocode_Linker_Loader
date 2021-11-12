@@ -1,0 +1,64 @@
+################## PASS 1       page 21 PDF
+
+input = linker  obj1    obj2    obj3    ...
+
+objects = inputs[1,-1]
+
+ESTAB = Data structure similar to SYMBOL TABLE which will hold names and addresses of all external symbols in the object being loaded
+PROGADDR = Program Load Address -- beginning memory addr where object is being loaded
+CSADDR = Control Section Address -- starting address assigned to the object (so we generate this addr based on whatever we choose)?
+
+with open linker
+        for object in objects
+                with read object
+                        # line 1 H record
+                        obj_len = Length from H record (CSLTH)
+
+                        loop through ESTAB looking for the program name
+                                if true
+                                        error out
+                                else
+                                        add object name to ESTAB with CSADDR
+                        while record type != E # so line[0] != 'E'
+                                line = this line of text from object file
+
+                                if record type == 'D' # so line[0] == 'D'
+                                        search ESTAB for symbol name
+                                                if true
+                                                        error out
+                                                else
+                                                        add symbol to ESTAB with CSADDR + indicated addr
+                        add CSLTH to CSADDR (startig address for next object)
+
+
+################### PASS 2
+
+        CSADDR = PROGADDR
+        EXECADDR = PORGADDR
+
+        for object in objects
+                with read object
+                        # line 1 H record
+                        obj_len = Length from H record (CSLTH)
+
+                        while record type != E
+                                line = read current line
+
+                                # (CSADDR + specific addr is adding offset to the addres of record)
+                                if record type == T
+                                        (IDK what they mean by "If object code is in character from, convert into internal representation)
+                                        move object code from record to location
+                                                (CSADDR + specific addr)
+                                else if record type == M
+                                        search ESTAB from symbol name
+                                        if true
+                                                add/sub symbol value at location
+                                                        (CSADDR + specific addr)
+                                        else
+                                                error out
+                        if End record has a set Symbol in it
+                                set EXECADDR to (CSADDR + specific addr)
+
+                        add CSLTH to CSADRR
+
+        go to location given by EXECADR (to start execution of loaded program)
