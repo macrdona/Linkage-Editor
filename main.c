@@ -105,7 +105,7 @@ int main(int argc, char* argv[]){
                     char* hexValue = malloc(10);
                     memset(hexValue, 0, 10);
 
-                    //Column 2 to 7 has the name of the program
+                    //Column 2 to 7 has the name of the external symbol
                     strncpy(symbol, buffer + nameBeginIndex, (nameEndIndex - nameBeginIndex));
                     //Column 8 to 13 has the address of the symbols
                     strncpy(address, buffer + addressBeginIndex, (addressEndIndex - addressBeginIndex));
