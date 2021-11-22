@@ -45,6 +45,6 @@ void AddToTable(ESTAB* externalSymbolTable, char* symbol, char* address, char* t
     }
     else{
         printf("%s is a duplicate symbol!\n", symbol);
-        return 0;
+//        return 0;    // TODO: do we need this, return type is void?
     }
 }
