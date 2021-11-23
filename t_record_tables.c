@@ -5,6 +5,7 @@ void AddTRecord(TSTAB* table, TSTAB* record){
     // if this is the first element
     if(strcmp(table->address, "\0") == 0){
         strcpy(table->address, record->address);
+        strcpy(table->address_new, record->address_new);
         strcpy(table->len, record->len);
         strcpy(table->data, record->data);
         table->next = NULL;

@@ -92,38 +92,39 @@ int main(int argc, char* argv[]){
 
     // will loop through all of the arvs, with 0 being the program call,
     //      1 being the output file and the rest links (TODO: latter one of them is gonna be a relocation param)
-    for(int i = 1; i < argc; i++){
-        if (i == 1){    // linking file output creation
+    for(int i = 1; i < argc; i++) {
+        if (i == 1) {    // linking file output creation
             fptr = fopen(argv[i], "w"); // opening a linking file for writing
 
             // checking if file was created/opened
-            if(fptr == NULL){
+            if (fptr == NULL) {
                 printf("Error: Cannot open file - %s \n", argv[i]);
                 return EXIT_FAILURE;
             }
             fputs("", fptr);    // making new file
             fclose(fptr);
         }
-        else{   // getting all of the files to be linked
+        else {   // getting all of the files to be linked
             // T-Record Table
             TSTAB t_table_base; // initializer
 //            memset(t_table_base.address, '\000', 6);
             memset(t_table_base.address, '\000', 7);
+            memset(t_table_base.address_new, '\000', 7);
 //            memset(t_table_base.len, '\000', 2);
             memset(t_table_base.len, '\000', 3);
 //            memset(t_table_base.data, '\000', 60);
             memset(t_table_base.data, '\000', 61);
 
-            TSTAB* t_table = NULL;
-            t_table = (TSTAB*) malloc(sizeof (TSTAB));
+            TSTAB *t_table = NULL;
+            t_table = (TSTAB *) malloc(sizeof(TSTAB));
             *(t_table) = t_table_base;
 
             // Table for T-record table
             T_TABLES temp_t_tables_base;
             temp_t_tables_base.table = t_table;
             temp_t_tables_base.next = NULL;
-            T_TABLES* temp_t_tables = NULL;
-            temp_t_tables = (T_TABLES*) malloc(sizeof (T_TABLES));
+            T_TABLES *temp_t_tables = NULL;
+            temp_t_tables = (T_TABLES *) malloc(sizeof(T_TABLES));
             *(temp_t_tables) = temp_t_tables_base;
 
             // Adding table to tables
@@ -134,30 +135,32 @@ int main(int argc, char* argv[]){
             fptr = fopen(argv[i], "r");
 
             //checks if file exists
-            if (fptr == NULL){
+            if (fptr == NULL) {
                 printf("Error: Cannot open file - %s \n", argv[i]);
                 return EXIT_FAILURE;
             }
 
             //reads each line of the file and stores it in buffer
-            while (fgets(buffer, 1024, fptr) != NULL){
+            while (fgets(buffer, 1024, fptr) != NULL) {
                 strcpy(bufferFull, buffer);
 
                 // My attempt at this
-                char* ptr_save = NULL;
-                char* single_line = NULL;
-                strcpy(line, buffer);   // writing memory stuff into a char array of equal size, easier to work like this
+                char *ptr_save = NULL;
+                char *single_line = NULL;
+                strcpy(line,
+                       buffer);   // writing memory stuff into a char array of equal size, easier to work like this
 
                 single_line = strtok_r(line, "\t\n\r", &ptr_save);
-                if(single_line != NULL){    // if we have a line to work with
-                    if (single_line[0] == ' '){     // at time there are spaces before the actual text, this gets rid of them
+                if (single_line != NULL) {    // if we have a line to work with
+                    if (single_line[0] ==
+                        ' ') {     // at time there are spaces before the actual text, this gets rid of them
                         single_line = strtok_r(single_line, " ", &ptr_save);
                     }
 
                     record_Letter[0] = single_line[0]; // getting the first char
 
                     // TODO: rework the H record
-                    if(strcmp(record_Letter, "H") == 0){
+                    if (strcmp(record_Letter, "H") == 0) {
                         //store record lentgh
                         recordH_length = strlen(buffer);
                         //Column 2 to 7 has the name of the program
@@ -172,7 +175,8 @@ int main(int argc, char* argv[]){
 
                     }
 
-                    else if(strcmp(record_Letter, "T") == 0){    // T-Record
+                        // TODO: M record
+                    else if (strcmp(record_Letter, "T") == 0) {    // T-Record
                         /*  T-record
                          *  0 = T   single_line[0]
                          *  1-6 = address   single_line[1-6]    // START addr + local
@@ -182,6 +186,7 @@ int main(int argc, char* argv[]){
                         TSTAB temp_base; // initializer
 //                        memset(temp_base.address, '\000', 6);
                         memset(temp_base.address, '\000', 7);
+                        memset(temp_base.address_new, '\000', 7);
 //                        memset(temp_base.len, '\000', 2);
                         memset(temp_base.len, '\000', 3);
 //                        memset(temp_base.data, '\000', 60);
@@ -192,23 +197,41 @@ int main(int argc, char* argv[]){
                         int counter_c = 0;
                         unsigned long max = strlen(single_line);
                         // getting T record information
-                        for(int j = 1; j < max; j++){
-                            if(j <= 6){
+                        for (int j = 1; j < max; j++) {
+                            if (j <= 6) {
                                 temp_base.address[counter_a] = single_line[j];
                                 counter_a++;
-                            }
-                            else if (j <= 8){
+                            } else if (j <= 8) {
                                 temp_base.len[counter_b] = single_line[j];
                                 counter_b++;
-                            }
-                            else if (j <= 68){
+                            } else if (j <= 68) {
                                 temp_base.data[counter_c] = single_line[j];
                                 counter_c++;
                             }
                         }
 
-                        TSTAB* temp = NULL;
-                        temp = (TSTAB*) malloc(sizeof (TSTAB));
+                        // address relocation
+                        // addr to decimal
+                        int new_t_addr = (int) strtol(temp_base.address, NULL, 16);
+                        char addr_new[7];
+                        memset(addr_new, '\000', 7);
+                        // addr + reloc
+                        new_t_addr += decimal_load_point;
+                        // decimal to hex + hex to record
+                        sprintf(addr_new, "%X", new_t_addr);
+
+                        // padding
+                        int len_new_add = strlen(addr_new);
+                        for(int f = 0; f < (6-len_new_add); f++){
+                            temp_base.address_new[f] = '0';
+                        }
+                        // actual addr
+                        for(int f = 0; f < len_new_add; f++){
+                            temp_base.address_new[(6-len_new_add) + f] = addr_new[f];
+                        }
+
+                        TSTAB *temp = NULL;
+                        temp = (TSTAB *) malloc(sizeof(TSTAB));
                         *(temp) = temp_base;
 
                         // add to table
@@ -216,7 +239,7 @@ int main(int argc, char* argv[]){
 
                     }
 
-                    else if(strcmp(record_Letter, "D") == 0){
+                    else if (strcmp(record_Letter, "D") == 0) {
                         int recordD_length = strlen(buffer) - 1;
                         int nameBeginIndex = 2;
                         int nameEndIndex = 8;
@@ -224,8 +247,8 @@ int main(int argc, char* argv[]){
                         int addressEndIndex = 13;
                         int decimal_address;
 
-                        while(addressEndIndex < recordD_length){
-                            char* hexValue = malloc(10);
+                        while (addressEndIndex < recordD_length) {
+                            char *hexValue = malloc(10);
                             memset(hexValue, 0, 10);
 
                             //Column 2 to 7 has the name of the external symbol
@@ -237,7 +260,7 @@ int main(int argc, char* argv[]){
                             //calculating new address based on load_point
                             decimal_address += decimal_load_point;
                             //convert addreess back to hexadecimal
-                            sprintf(hexValue,"%X", decimal_address);
+                            sprintf(hexValue, "%X", decimal_address);
                             //store value in address
                             sprintf(address, "%s", hexValue);
                             //storting record type
@@ -254,11 +277,11 @@ int main(int argc, char* argv[]){
                             free(hexValue);
                         }
 
+                    }
                 }
-
-//                return EXIT_SUCCESS;
+            }
+        }
     }
-
     // LOGGER THIS IS TEMP
     // ALL OF THE T-RECORD FIELDS ARE ENLARGED BY 1 BECAUSE I AM PRINTING THEM OUT
     // DO NOT CHANGE SINCE IT WILL BREAK THE LOGGER, I WILL FIX IT LATER ON IN THE PROJECT
@@ -266,7 +289,7 @@ int main(int argc, char* argv[]){
     while(tTables != NULL){
         printf("######################### Covering table #%d #########################\n", k);
         while(tTables->table != NULL){
-            printf("Addr: %s\nLen: %s\nData: %s\n****\n", tTables->table->address, tTables->table->len, tTables->table->data);
+            printf("Addr: %s\t\t(%s)\nLen: %s\nData: %s\n****\n", tTables->table->address, tTables->table->address_new, tTables->table->len, tTables->table->data);
             tTables->table = tTables->table->next;
         }
         tTables = tTables->next;
@@ -276,89 +299,4 @@ int main(int argc, char* argv[]){
     free(load_point);
     fclose(fptr);
     return EXIT_SUCCESS;
-
-    //continue while there are more files
-//    while(count_files <= number_files){
-//
-//        //open file
-//        fptr = fopen(argv[count_files], "r");
-//
-//        //checks if file exists
-//        if (fptr == NULL){
-//            printf("Error: Cannot open file - %s \n", argv[count_files]);
-//            return 0;
-//        }
-//
-//        //reads each line of the file and stores it in buffer
-//	    while (fgets(buffer, 1024, fptr) != NULL){
-//
-//            strcpy(bufferFull, buffer);
-//
-//            //getting start address from H record
-//            if(strcmp(buffer[0], "H") == 0){
-//                //store record lentgh
-//                recordH_length = strlen(buffer);
-//                //Column 2 to 7 has the name of the program
-//                strncpy(symbol, buffer + 2, (8 - 2));
-//                //Store load_point in address
-//                strcpy(address, load_point);
-//                //storting record type
-//                strcpy(type, "H");
-//
-//                //add to table
-//                AddToTable(externalSymbolTable, symbol, address, type);
-//
-//            }
-//            else if(strcmp(buffer[0], "D") == 0){
-//                int recordD_length = strlen(buffer) - 1;
-//                int nameBeginIndex = 2;
-//                int nameEndIndex = 8;
-//                int addressBeginIndex = 8;
-//                int addressEndIndex = 13;
-//                int decimal_address;
-//
-//                while(addressEndIndex < recordD_length){
-//                    char* hexValue = malloc(10);
-//                    memset(hexValue, 0, 10);
-//
-//                    //Column 2 to 7 has the name of the external symbol
-//                    strncpy(symbol, buffer + nameBeginIndex, (nameEndIndex - nameBeginIndex));
-//                    //Column 8 to 13 has the address of the symbols
-//                    strncpy(address, buffer + addressBeginIndex, (addressEndIndex - addressBeginIndex));
-//                    //converting address into decimal representation
-//                    sscanf(address, "%X", &decimal_address);
-//                    //calculating new address based on load_point
-//                    decimal_address += decimal_load_point;
-//                    //convert addreess back to hexadecimal
-//                    sprintf(hexValue,"%X", decimal_address);
-//                    //store value in address
-//                    sprintf(address, "%s", hexValue);
-//                    //storting record type
-//                    strcpy(type, "D");
-//
-//                    //add to table
-//                    AddToTable(externalSymbolTable, symbol, address, type);
-//
-//                    nameBeginIndex += 12;
-//                    nameEndIndex = nameBeginIndex + 5;
-//                    addressBeginIndex += nameEndIndex + 1;
-//                    addressEndIndex = addressBeginIndex + 5;
-//
-//                    free(hexValue);
-//                }
-//
-//
-//            }//end else if (strcmp(buffer[0], "D") == 0)
-//
-//
-//        }//end while (fgets(buffer, 1024, fptr) != NULL)
-//
-//        count_files++;
-//    }//end while (count_files <= number_files)
- 
-
-    free(load_point);
-    fclose(fptr);
 }//end of main
-
-    

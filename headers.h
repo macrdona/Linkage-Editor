@@ -14,6 +14,7 @@ typedef struct records ESTAB;
 struct t_records{
 //    char address[6];
     char address[7];
+    char address_new[7];
 //    char len[2];
     char len[3];
 //    char data[60];
