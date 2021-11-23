@@ -4,12 +4,12 @@
 #include <math.h>
 #include <ctype.h>
 
-struct records {
+struct d_records {
 	char address[10]; 
 	char Name[10];
     char recordType[2];
 };
-typedef struct records ESTAB;
+typedef struct d_records ESTAB;
 
 struct t_records{
 //    char address[6];

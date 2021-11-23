@@ -33,3 +33,12 @@ the specification on the 'Object File Format (SCOFF)' document. It states that, 
 
 The comment "//calculating new address based on load_point", it refers to 
 (CSADDR + indicated address) in the pseudocode found in the LinkersAndLoaders pdf, page 21-22
+
+Notes on my code
+Date: 11/23/2021
+
+-Expected arguments increased from three to four. We are no expecting an extra argument that should be the address to which the program will be relocated to. 
+
+
+-Changes to load_point and decimal_load_point variables.
+When we read the first argument (assuming that the address will be give in hex), we store the relocation address into variable load_point. We convert the address into decimal and store it in decimal_load_point. 

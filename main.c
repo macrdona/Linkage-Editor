@@ -14,19 +14,20 @@ int main(int argc, char* argv[]){
         printf("Argv[%d] = %s\n", i, argv[i]);
     }
 
-    /*Checks that there are more than two parameters.
-    /*We need a name for the file, and at least two 
+    /*Checks that there are more than three parameters.
+    /*We need a address where the program will be relocated to, a
+    /*name for the file, and at least two 
     /*object files that we can link together*/
-	if (argc < 3){
+	if (argc < 4){
 		printf("The number of arguments provided is insufficient.");
 		help();
 		return EXIT_FAILURE;
 	}
 
-    /*If first argument contains a '.', 
+    /*If second argument contains a '.', 
     /*then a file was provided instead of a filename*/
     char* check;
-    check = strstr(argv[0], ".");
+    check = strstr(argv[1], ".");
     if(check){
         printf("Filename was not provided");
         help();
@@ -39,7 +40,7 @@ int main(int argc, char* argv[]){
     FILE *fptr;
 
     //store the name of output file
-    char file_name = argv[0];
+    char file_name = argv[1];
 
     int number_files = argc - 1;
     int count_files = 1;
@@ -48,15 +49,14 @@ int main(int argc, char* argv[]){
 	ESTAB* externalSymbolTable[1024] = {};
     memset(externalSymbolTable, '\0', 1024 * sizeof(struct externalSymbolTable*));
 
-    // TODO: will be another arg in CLI for relocation addr
-    //address where we are loading the program
-    int decimal_load_point = 0;
-
     char* load_point = malloc(20);
     memset(load_point, 0, 20);
-    //storing the value 0(in hex) into load_point
-    sprintf(load_point, "%X", decimal_load_point);
+    //copying relocation address into variable load point
+    strcpy(load_point, argv[0]);
 
+    int decimal_load_point;
+    //converts address from hex to dec
+    sscanf(load_point, "%X", &decimal_load_point); 
 
     char buffer[1024];
 	char bufferFull[1024];
@@ -277,7 +277,8 @@ int main(int argc, char* argv[]){
                             free(hexValue);
                         }
 
-                    }
+                    }//end else if (strcmp(record_Letter, "D") == 0)
+
                 }
             }
         }
