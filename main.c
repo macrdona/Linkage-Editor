@@ -14,8 +14,9 @@ int main(int argc, char* argv[]){
         printf("Argv[%d] = %s\n", i, argv[i]);
     }
 
-    /*Checks that there are more than two parameters.
-    /*We need a name for the file, and at least two 
+    /*Checks that there are more than three parameters.
+    /*We need a address where the program will be relocated to, a
+    /*name for the file, and at least two
     /*object files that we can link together*/
 	if (argc < 4){
 		printf("The number of arguments provided is insufficient.");
@@ -23,7 +24,7 @@ int main(int argc, char* argv[]){
 		return EXIT_FAILURE;
 	}
 
-    /*If first argument contains a '.', 
+    /*If second argument contains a '.',
     /*then a file was provided instead of a filename*/
     char* check;
     check = strstr(argv[1], ".");
@@ -50,11 +51,12 @@ int main(int argc, char* argv[]){
 
     char* load_point = malloc(20);
     memset(load_point, 0, 20);
-    int decimal_load_point;
+    //copying relocation address into variable load point
+    strcpy(load_point, argv[0]);
 
+    int decimal_load_point;
     //converts address from hex to dec
     sscanf(load_point, "%X", &decimal_load_point);
-
 
     char buffer[1024];
 	char bufferFull[1024];
@@ -368,7 +370,8 @@ int main(int argc, char* argv[]){
                             free(hexValue);
                         }
 
-                    }
+                    }//end else if (strcmp(record_Letter, "D") == 0)
+
                 }
             }
         }
