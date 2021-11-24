@@ -52,7 +52,7 @@ int main(int argc, char* argv[]){
     char* load_point = malloc(20);
     memset(load_point, 0, 20);
     //copying relocation address into variable load point
-    strcpy(load_point, argv[0]);
+    strcpy(load_point, argv[1]);
 
     int decimal_load_point;
     //converts address from hex to dec
@@ -204,7 +204,6 @@ int main(int argc, char* argv[]){
 
                     }
 
-                    // TODO: M record
                     // M-Record
                     else if (strcmp(record_Letter, "M") == 0){
                         /*  M-Record
@@ -268,6 +267,7 @@ int main(int argc, char* argv[]){
                         // add to table
                         AddMRecord(m_table, temp);
                     }
+
                     // T-Record
                     else if (strcmp(record_Letter, "T") == 0) {
                         /*  T-record
@@ -329,7 +329,6 @@ int main(int argc, char* argv[]){
 
                         // add to table
                         AddTRecord(t_table, temp);
-
                     }
 
                     else if (strcmp(record_Letter, "D") == 0) {
