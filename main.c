@@ -297,6 +297,12 @@ int main(int argc, char* argv[]){
         k++;
     }
 
+    printf("\nExternal Symbol Table\n");
+	printf("---------------------\n");
+	for(int x = 0; externalSymbolTable[x]; x++){
+		printf("%s\t%s\t%s\n", externalSymbolTable[x]->Name, externalSymbolTable[x]->address, externalSymbolTable[x]->recordType);
+	}
+
     free(load_point);
     fclose(fptr);
     return EXIT_SUCCESS;
