@@ -37,7 +37,7 @@ int SymbolExists(ESTAB* externalSymbolTable[], char* symbol){
     return result;
 }
 
-void AddToTable(ESTAB* externalSymbolTable, char* symbol, char* address, char* type){
+void AddToTable(ESTAB* externalSymbolTable[], char* symbol, char* address, char* type){
     //check for duplicate symbols
     if(SymbolExists(externalSymbolTable, symbol) == 0){
         //if not duplicate, add symbol

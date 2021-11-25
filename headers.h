@@ -48,7 +48,7 @@ typedef struct m_tables M_TABLES;
 
 void AddSymbol(ESTAB* externalSymbolTable[], char* address, char* symbol, char* type);
 int SymbolExists(ESTAB* externalSymbolTable[], char* symbol);
-void AddToTable(ESTAB* externalSymbolTable, char* symbol, char* address, char* type);
+void AddToTable(ESTAB* externalSymbolTable[], char* symbol, char* address, char* type);
 
 // T-Records
 void AddTRecord(TSTAB* table, TSTAB* record);
