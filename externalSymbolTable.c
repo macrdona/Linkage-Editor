@@ -48,3 +48,37 @@ void AddToTable(ESTAB* externalSymbolTable[], char* symbol, char* address, char*
 //        return 0;    // TODO: do we need this, return type is void?
     }
 }
+
+/*This method appends tokens to the front or back of specified symbol*/
+void appendToSymbol(char* symbol, int length, char* append, int append_front){
+        char* temp = malloc(50);
+        memset(temp, 0, 50);
+        int symbolLen = strlen(symbol);
+
+        //find how many tokens need to be appended
+        while(symbolLen < length){
+            strcat(temp, append);
+            symbolLen++;
+        }
+
+        //append to the back of symbol if append_front equals 0
+        if (append_front == 0){
+            strcat(symbol, temp);
+        }
+        //append to the front if append_front equals 1
+        else{
+            strcat(temp, symbol);
+            sprintf(symbol, "%s", temp);
+        }
+    free(temp);
+}
+
+int checkMemory(long address){
+    int result = 0;
+
+    if (address > 1048576){
+        result = 1;
+    }
+
+    return result;
+}

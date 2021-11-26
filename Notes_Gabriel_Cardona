@@ -42,3 +42,14 @@ Date: 11/23/2021
 
 -Changes to load_point and decimal_load_point variables.
 When we read the first argument (assuming that the address will be give in hex), we store the relocation address into variable load_point. We convert the address into decimal and store it in decimal_load_point. 
+
+Notes on my code
+Date: 11/26/2021
+
+-To get the final_program_leght we sum the length of each program and add the relocation value.
+
+-Added function to add nessesary symbols (like zeros) to hex values
+
+-Created function to check that address does not exceed SIC/XE memory limit. The function is called "checkMemory", parameter is a number of type long.
+
+-Change all variables storing address type from int to long. This is because if a big enough hexadecimal address was given, then the conversion from hex to int would be incorrect. 

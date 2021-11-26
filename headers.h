@@ -57,3 +57,5 @@ void AddTTable(T_TABLES* main_table, T_TABLES* table);
 // M-Records
 void AddMRecord(MSTAB* table, MSTAB* record);
 void AddMTable(M_TABLES* main_table, M_TABLES* table);
+void appendToSymbol(char* symbol, int length, char* append, int append_front);
+int checkMemory(long address);

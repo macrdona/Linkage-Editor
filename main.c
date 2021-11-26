@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
     //*We need a address where the program will be relocated to, a
     //*name for the file, and at least two
     //*object files that we can link together
-	if (argc < 4){
+	if (argc < 5){
 		printf("The number of arguments provided is insufficient.");
 		help();
 		return EXIT_FAILURE;
@@ -47,14 +47,13 @@ int main(int argc, char* argv[]){
 	ESTAB* externalSymbolTable[1024] = {};
     memset(externalSymbolTable, '\0', 1024 * sizeof(struct externalSymbolTable*));
 
-    char* load_point = malloc(20);
-    memset(load_point, 0, 20);
+    char* load_point = malloc(100);
+    memset(load_point, '\0', 100);
     //copying relocation address into variable load point
     strcpy(load_point, argv[1]);
-
-    int decimal_load_point;
+    long decimal_load_point;
     //converts address from hex to dec
-    sscanf(load_point, "%X", &decimal_load_point);
+    sscanf(load_point, "%lX", &decimal_load_point);
 
     char buffer[1024];
 	char bufferFull[1024];
@@ -62,6 +61,8 @@ int main(int argc, char* argv[]){
     char* symbol;
 	char* address;
     char* type;
+    char program_length[20];
+    long decimal_program_length;
     char record_Letter[2] = {"\000"};  // init to null
     char line[1024] = {"\000"};
 
@@ -183,27 +184,37 @@ int main(int argc, char* argv[]){
 
                     record_Letter[0] = single_line[0]; // getting the first char
 
-                    // TODO: rework the H record
-                    if ((strcmp(record_Letter, "H") == 0) && (i == 3)) {
-                        
+                    if ((strcmp(record_Letter, "H") == 0)) {
+                        memset(program_length, '\0', 10);
                         char* hexValue = malloc(20);
                         memset(hexValue, '\0', 20);
-                        int decimal_address = 0;
+                        long decimal_address = 0;
+
                         //Column 2 to 7 has the name of the external symbol
                         strncpy(symbol, buffer + 1, (7 - 1));
-                        //Column 8 to 13 has the address of the symbols
-                        strncpy(address, buffer + 8, (14 - 8));
-                        //converting address into decimal representation
-                        sscanf(address, "%X", &decimal_address);
+                        //padding
+                        appendToSymbol(symbol, 6, " ", 0);
                         //calculating new address based on load_point
-                        decimal_address += decimal_load_point;
+                        decimal_address = decimal_load_point;
                         //convert address back to hexadecimal
-                        sprintf(hexValue, "%X", decimal_address);
+                        sprintf(hexValue, "%lX", decimal_address);
                         //store value in address
                         sprintf(address, "%s", hexValue);
+                        //padding
+                        appendToSymbol(address, 6, "0", 1);
+                        //Column 14 to 19 have the program length
+                        strncpy(program_length, buffer + 14, (19 - 14));
+                        //converting address into decimal representation
+                        sscanf(program_length, "%lX", &decimal_program_length);
                         //storting record type
                         strcpy(type, "H");
-                    
+                        
+                        
+                        int result = checkMemory(decimal_address);
+                        if (result == 1){
+                            printf("ERROR: Memory limit exceeded");
+                            return EXIT_FAILURE;
+                        }
                         //add to table
                         AddToTable(externalSymbolTable, symbol, address, type);
                         free(hexValue);
@@ -342,7 +353,7 @@ int main(int argc, char* argv[]){
                         int nameEndIndex = 7;
                         int addressBeginIndex = 8;
                         int addressEndIndex = 13;
-                        int decimal_address;
+                        long decimal_address;
 
                         while (addressBeginIndex < recordD_length) {
                             char *hexValue = malloc(20);
@@ -350,19 +361,28 @@ int main(int argc, char* argv[]){
                             decimal_address = 0;
                             //Column 2 to 7 has the name of the external symbol
                             strncpy(symbol, buffer + nameBeginIndex, (nameEndIndex - nameBeginIndex));
+                            //padding
+                            appendToSymbol(symbol, 6, " ", 0);
                             //Column 8 to 13 has the address of the symbols
                             strncpy(address, buffer + addressBeginIndex, (addressEndIndex - addressBeginIndex));
                             //converting address into decimal representation
-                            sscanf(address, "%X", &decimal_address);
+                            sscanf(address, "%lX", &decimal_address);
                             //calculating new address based on load_point
                             decimal_address += decimal_load_point;
                             //convert addreess back to hexadecimal
-                            sprintf(hexValue, "%X", decimal_address);
+                            sprintf(hexValue, "%lX", decimal_address);
                             //store value in address
                             sprintf(address, "%s", hexValue);
+                            //padding
+                            appendToSymbol(address, 6, "0", 1);
                             //storting record type
                             strcpy(type, "D");
 
+                            int result = checkMemory(decimal_address);
+                            if (result == 1){
+                                printf("ERROR: Memory limit exceeded\n");
+                                return EXIT_FAILURE;
+                            }
                             //add to table
                             AddToTable(externalSymbolTable, symbol, address, type);
 
@@ -375,6 +395,7 @@ int main(int argc, char* argv[]){
                         }
 
                     }//end else if (strcmp(record_Letter, "D") == 0)
+                
                 memset(symbol, '\0', 1024 * sizeof(char));
                 memset(address, '\0', 1024 * sizeof(char));
                 memset(type, '\0', 1024 * sizeof(char));
@@ -382,21 +403,25 @@ int main(int argc, char* argv[]){
                 }
             }
         }
+        decimal_load_point += decimal_program_length;
     }
     // LOGGER THIS IS TEMP
     // ALL OF THE T-RECORD FIELDS ARE ENLARGED BY 1 BECAUSE I AM PRINTING THEM OUT
     // DO NOT CHANGE SINCE IT WILL BREAK THE LOGGER, I WILL FIX IT LATER ON IN THE PROJECT
     int k = 1; // table counter
-
+    //store value in address
+    sprintf(program_length, "%lX", decimal_load_point);
+    //padding
+    appendToSymbol(program_length, 6, "0", 1);
     for(int x = 0; externalSymbolTable[x]; x++){
         if (strcmp(externalSymbolTable[x]->recordType, "H") == 0){
-            printf("%s%s  [Add zeros]%s[here program legth]\n", externalSymbolTable[x]->recordType, externalSymbolTable[x]->Name, externalSymbolTable[x]->address);
+            printf("\n%s%s%s%s\n", externalSymbolTable[x]->recordType, externalSymbolTable[x]->Name, externalSymbolTable[x]->address, program_length);
         }
         else{
             if (x < 2){
                 printf("%s", externalSymbolTable[x]->recordType);
             }
-            printf("%s  [Add zeros]%s", externalSymbolTable[x]->Name, externalSymbolTable[x]->address);
+            printf("%s%s", externalSymbolTable[x]->Name, externalSymbolTable[x]->address);
         }
     }
     printf("\n");
@@ -411,7 +436,7 @@ int main(int argc, char* argv[]){
     k = 1;
     while(mTables != NULL){
         while(mTables->table != NULL){
-            printf("M%s%s%s%s\n", mTables->table->address, mTables->table->len, mTables->table->mod_sym, mTables->table->symbol);
+            printf("M%s%s%s%s\n", mTables->table->address_new, mTables->table->len, mTables->table->mod_sym, mTables->table->symbol);
             mTables->table = mTables->table->next;
         }
         mTables = mTables->next;
