@@ -45,6 +45,17 @@ struct m_tables{
 };
 typedef struct m_tables M_TABLES;
 
+struct e_records{
+    char address[7];
+    struct e_records* next;
+};
+typedef struct e_records ERSTAB;
+
+struct e_tables{
+    ERSTAB* table;
+    struct e_tables* next;
+};
+typedef struct e_tables E_TABLES;
 
 void AddSymbol(ESTAB* externalSymbolTable[], char* address, char* symbol, char* type);
 int SymbolExists(ESTAB* externalSymbolTable[], char* symbol);
@@ -57,5 +68,10 @@ void AddTTable(T_TABLES* main_table, T_TABLES* table);
 // M-Records
 void AddMRecord(MSTAB* table, MSTAB* record);
 void AddMTable(M_TABLES* main_table, M_TABLES* table);
+
 void appendToSymbol(char* symbol, int length, char* append, int append_front);
 int checkMemory(long address);
+
+// E-Records
+void AddERecord(ERSTAB* table, ERSTAB* record);
+void AddETable(E_TABLES* main_table, E_TABLES* table);

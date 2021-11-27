@@ -8,4 +8,4 @@ include_directories(.)
 add_executable(Linkage_Editor
         externalSymbolTable.c
         headers.h
-        main.c t_record_tables.c m_record_tables.c)
+        main.c t_record_tables.c m_record_tables.c e_record_tables.c)

@@ -1,15 +1,10 @@
-
 #include "headers.h"
 
-// adding a record to m-table
-void AddMRecord(MSTAB* table, MSTAB* record){
+// adding a record to e-table
+void AddERecord(ERSTAB* table, ERSTAB* record){
     // if this is the first element
     if(strcmp(table->address, "\0") == 0){
         strcpy(table->address, record->address);
-        strcpy(table->address_new, record->address_new);
-        strcpy(table->len, record->len);
-        strcpy(table->mod_sym, record->mod_sym);
-        strcpy(table->symbol, record->symbol);
         table->next = NULL;
         return;
     }
@@ -23,8 +18,8 @@ void AddMRecord(MSTAB* table, MSTAB* record){
     table->next = record;
 }
 
-// adding m-table to table chain
-void AddMTable(M_TABLES* main_table, M_TABLES* table){
+// adding e-table to table chain
+void AddETable(E_TABLES* main_table, E_TABLES* table){
     if(main_table->table == NULL){
         main_table->table = table->table;
         main_table->next = NULL;

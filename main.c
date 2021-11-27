@@ -28,8 +28,8 @@ int main(int argc, char* argv[]){
     //*then a file was provided instead of a filename
     char* check;
     check = strstr(argv[2], ".");
-    if(check){
-        printf("Filename was not provided");
+    if(check == NULL){
+        printf("Filename was not provided\n");
         help();
         return EXIT_FAILURE;
     }
@@ -91,6 +91,14 @@ int main(int argc, char* argv[]){
     M_TABLES* mTables = NULL;
     mTables = (M_TABLES*) malloc(sizeof (M_TABLES));
     *(mTables) = m_tables_base;
+
+    // E-Tables
+    E_TABLES  e_tables_base;
+    e_tables_base.table = NULL;
+    e_tables_base.next = NULL;
+    E_TABLES* eTables = NULL;
+    eTables = (E_TABLES*) malloc(sizeof (E_TABLES));
+    *(eTables) = e_tables_base;
 
 
 
@@ -156,6 +164,27 @@ int main(int argc, char* argv[]){
 
             AddMTable(mTables, temp_m_tables);
 
+            // E-Record Table
+            ERSTAB  e_table_base;
+            memset(e_table_base.address, '\000', 7);
+            e_table_base.next = NULL;
+
+            ERSTAB* e_table = NULL;
+            e_table = (ERSTAB *) malloc(sizeof (ERSTAB));
+            *(e_table) = e_table_base;
+
+            // Table for E-Record table
+            E_TABLES  temp_e_table_base;
+            temp_e_table_base.table = e_table;
+            temp_e_table_base.next = NULL;
+
+            E_TABLES *temp_e_tables = NULL;
+            temp_e_tables = (E_TABLES*) malloc(sizeof (E_TABLES));
+            *(temp_e_tables) = temp_e_table_base;
+
+            AddETable(eTables, temp_e_tables);
+
+
             //open file
             fptr = fopen(argv[i], "r");
 
@@ -184,6 +213,7 @@ int main(int argc, char* argv[]){
 
                     record_Letter[0] = single_line[0]; // getting the first char
 
+                    // H-Record
                     if ((strcmp(record_Letter, "H") == 0)) {
                         memset(program_length, '\0', 10);
                         char* hexValue = malloc(20);
@@ -258,13 +288,13 @@ int main(int argc, char* argv[]){
                         }
                         // address relocation
                         // addr to decimal
-                        int new_t_addr = (int) strtol(temp_base.address, NULL, 16);
+                        long new_t_addr = (long) strtol(temp_base.address, NULL, 16);
                         char addr_new[7];
                         memset(addr_new, '\000', 7);
                         // addr + reloc
                         new_t_addr += decimal_load_point;
                         // decimal to hex + hex to record
-                        sprintf(addr_new, "%X", new_t_addr);
+                        sprintf(addr_new, "%lX", new_t_addr);
 
                         // padding
                         int len_new_add = strlen(addr_new);
@@ -321,13 +351,13 @@ int main(int argc, char* argv[]){
 
                         // address relocation
                         // addr to decimal
-                        int new_t_addr = (int) strtol(temp_base.address, NULL, 16);
+                        long new_t_addr = (long) strtol(temp_base.address, NULL, 16);
                         char addr_new[7];
                         memset(addr_new, '\000', 7);
                         // addr + reloc
                         new_t_addr += decimal_load_point;
                         // decimal to hex + hex to record
-                        sprintf(addr_new, "%X", new_t_addr);
+                        sprintf(addr_new, "%lX", new_t_addr);
 
                         // padding
                         int len_new_add = strlen(addr_new);
@@ -347,6 +377,7 @@ int main(int argc, char* argv[]){
                         AddTRecord(t_table, temp);
                     }
 
+                    // D-Record
                     else if (strcmp(record_Letter, "D") == 0) {
                         int recordD_length = strlen(buffer) - 1;
                         int nameBeginIndex = 1;
@@ -395,7 +426,51 @@ int main(int argc, char* argv[]){
                         }
 
                     }//end else if (strcmp(record_Letter, "D") == 0)
-                
+
+                    // E-Record
+                    else if (strcmp(record_Letter, "E") == 0){
+                        /*  E-Record
+                         *  [0] = E
+                         *  [1-6] = Address (Or nothing)
+                         * */
+
+                        ERSTAB temp_base;
+                        memset(temp_base.address, '\000', 7);
+                        char temp[7];
+                        memset(temp, '\000', 7);
+                        temp_base.next = NULL;
+
+                        int counter_a = 0;
+                        unsigned long max = strlen(single_line);
+
+                        // getting E-Record info
+                        for (int j = 1; j < max; j++) {
+                            if (j <= 6) {
+                                temp_base.address[counter_a] = single_line[j];
+                                counter_a++;
+                            }
+                        }
+                        strcpy(temp, temp_base.address);
+
+                        // padding
+                        int len_addr = strlen(temp);
+                        for(int f = 0; f < (6-len_addr); f++){
+                            temp[f] = '0';
+                        }
+                        // actual addr
+                        for(int f = 0; f < len_addr; f++){
+                            temp[(6-len_addr) + f] = temp_base.address[f];
+                        }
+                        strcpy(temp_base.address, temp);
+
+                        ERSTAB *temp_ = NULL;
+                        temp_ = (ERSTAB *) malloc(sizeof(ERSTAB));
+                        *(temp_) = temp_base;
+
+                        // add to table
+                        AddERecord(e_table, temp_);
+                    }
+
                 memset(symbol, '\0', 1024 * sizeof(char));
                 memset(address, '\0', 1024 * sizeof(char));
                 memset(type, '\0', 1024 * sizeof(char));
@@ -408,7 +483,6 @@ int main(int argc, char* argv[]){
     // LOGGER THIS IS TEMP
     // ALL OF THE T-RECORD FIELDS ARE ENLARGED BY 1 BECAUSE I AM PRINTING THEM OUT
     // DO NOT CHANGE SINCE IT WILL BREAK THE LOGGER, I WILL FIX IT LATER ON IN THE PROJECT
-    int k = 1; // table counter
     //store value in address
     sprintf(program_length, "%lX", decimal_load_point);
     //padding
@@ -431,16 +505,21 @@ int main(int argc, char* argv[]){
             tTables->table = tTables->table->next;
         }
         tTables = tTables->next;
-        k++;
     }
-    k = 1;
     while(mTables != NULL){
         while(mTables->table != NULL){
             printf("M%s%s%s%s\n", mTables->table->address_new, mTables->table->len, mTables->table->mod_sym, mTables->table->symbol);
             mTables->table = mTables->table->next;
         }
         mTables = mTables->next;
-        k++;
+    }
+
+    while(eTables != NULL){
+        while(eTables->table != NULL){
+            printf("E%s\n", eTables->table->address);
+            eTables->table = eTables->table->next;
+        }
+        eTables = eTables->next;
     }
     
 
