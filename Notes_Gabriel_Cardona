@@ -46,10 +46,19 @@ When we read the first argument (assuming that the address will be give in hex),
 Notes on my code
 Date: 11/26/2021
 
--To get the final_program_leght we sum the length of each program and add the relocation value.
-
 -Added function to add nessesary symbols (like zeros) to hex values
 
 -Created function to check that address does not exceed SIC/XE memory limit. The function is called "checkMemory", parameter is a number of type long.
 
--Change all variables storing address type from int to long. This is because if a big enough hexadecimal address was given, then the conversion from hex to int would be incorrect. 
+-Changed all variables storing address type from int to long. This is because if a big enough hexadecimal address was given, then the conversion from hex to int would be incorrect. 
+
+Notes on my code
+Date: 11/27/2021
+
+-Fix the addresses, their offsets, and calculated new program length after linking all the files
+
+-Fix bugs with the addresses
+
+-Added functionality to create file and write the object code to the new file
+
+-Added functionality to free external symbol table

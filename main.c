@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
     //*then a file was provided instead of a filename
     char* check;
     check = strstr(argv[2], ".");
-    if(check == NULL){
+    if(check != NULL){
         printf("Filename was not provided\n");
         help();
         return EXIT_FAILURE;
@@ -51,6 +51,7 @@ int main(int argc, char* argv[]){
     memset(load_point, '\0', 100);
     //copying relocation address into variable load point
     strcpy(load_point, argv[1]);
+
     long decimal_load_point;
     //converts address from hex to dec
     sscanf(load_point, "%lX", &decimal_load_point);
@@ -61,8 +62,16 @@ int main(int argc, char* argv[]){
     char* symbol;
 	char* address;
     char* type;
+    //stores symbol of from H record of the first file 
+    char program_symbol[20];
+    program_symbol[0] = 0;
+    //stores the length of the linked program
     char program_length[20];
-    long decimal_program_length;
+    long decimal_program_length = 0;
+    long final_program_length = 0;
+    //stores address of H record
+    char h_record_address[20];
+    long decimal_h_record_address = 0;
     char record_Letter[2] = {"\000"};  // init to null
     char line[1024] = {"\000"};
 
@@ -219,12 +228,22 @@ int main(int argc, char* argv[]){
                         char* hexValue = malloc(20);
                         memset(hexValue, '\0', 20);
                         long decimal_address = 0;
-
+                        
                         //Column 2 to 7 has the name of the external symbol
                         strncpy(symbol, buffer + 1, (7 - 1));
                         //padding
                         appendToSymbol(symbol, 6, " ", 0);
-                        //calculating new address based on load_point
+
+                        //storing symbol for the M records
+                        if (program_symbol[0] == 0){
+                            strcpy(program_symbol, symbol);
+                        }
+                        
+                        //Column 8 to 13 has the address of the symbols
+                        strncpy(h_record_address, buffer + 7, (14 - 8));
+                        //converting address into decimal representation
+                        sscanf(h_record_address, "%lX", &decimal_h_record_address);
+                        //calculating new address based on load_point 
                         decimal_address = decimal_load_point;
                         //convert address back to hexadecimal
                         sprintf(hexValue, "%lX", decimal_address);
@@ -233,13 +252,13 @@ int main(int argc, char* argv[]){
                         //padding
                         appendToSymbol(address, 6, "0", 1);
                         //Column 14 to 19 have the program length
-                        strncpy(program_length, buffer + 14, (19 - 14));
+                        strncpy(program_length, buffer + 13, (20 - 14));
                         //converting address into decimal representation
                         sscanf(program_length, "%lX", &decimal_program_length);
                         //storting record type
                         strcpy(type, "H");
                         
-                        
+                        //checks that addresss do not exceed SIC XE limit
                         int result = checkMemory(decimal_address);
                         if (result == 1){
                             printf("ERROR: Memory limit exceeded");
@@ -292,7 +311,7 @@ int main(int argc, char* argv[]){
                         char addr_new[7];
                         memset(addr_new, '\000', 7);
                         // addr + reloc
-                        new_t_addr += decimal_load_point;
+                        new_t_addr = (new_t_addr - decimal_h_record_address) + final_program_length + decimal_load_point;
                         // decimal to hex + hex to record
                         sprintf(addr_new, "%lX", new_t_addr);
 
@@ -355,7 +374,7 @@ int main(int argc, char* argv[]){
                         char addr_new[7];
                         memset(addr_new, '\000', 7);
                         // addr + reloc
-                        new_t_addr += decimal_load_point;
+                        new_t_addr = (new_t_addr - decimal_h_record_address) + final_program_length + decimal_load_point;
                         // decimal to hex + hex to record
                         sprintf(addr_new, "%lX", new_t_addr);
 
@@ -398,8 +417,8 @@ int main(int argc, char* argv[]){
                             strncpy(address, buffer + addressBeginIndex, (addressEndIndex - addressBeginIndex));
                             //converting address into decimal representation
                             sscanf(address, "%lX", &decimal_address);
-                            //calculating new address based on load_point
-                            decimal_address += decimal_load_point;
+                            //calculating new address based on load_point and offsets
+                            decimal_address = (decimal_address - decimal_h_record_address) + final_program_length + decimal_load_point;
                             //convert addreess back to hexadecimal
                             sprintf(hexValue, "%lX", decimal_address);
                             //store value in address
@@ -439,6 +458,7 @@ int main(int argc, char* argv[]){
                         char temp[7];
                         memset(temp, '\000', 7);
                         temp_base.next = NULL;
+                        long decimal_address = 0;
 
                         int counter_a = 0;
                         unsigned long max = strlen(single_line);
@@ -463,6 +483,15 @@ int main(int argc, char* argv[]){
                         }
                         strcpy(temp_base.address, temp);
 
+                        //converting address into decimal representation
+                        sscanf(temp_base.address, "%lX", &decimal_address);
+                        //calculating new address based on load_point and offsets
+                        decimal_address = (decimal_address - decimal_h_record_address) + decimal_load_point;
+                        //convert addreess back to hexadecimal
+                        sprintf(temp_base.address, "%lX", decimal_address);
+                        //padding
+                        appendToSymbol(temp_base.address, 6, "0", 1);
+
                         ERSTAB *temp_ = NULL;
                         temp_ = (ERSTAB *) malloc(sizeof(ERSTAB));
                         *(temp_) = temp_base;
@@ -478,51 +507,91 @@ int main(int argc, char* argv[]){
                 }
             }
         }
-        decimal_load_point += decimal_program_length;
+        //Before the program opens the next file, it will add the program length of the previous file 
+        //to calculate the address offsets. When calculating addresses of the next program, the
+        //addresses will be calculated based on where the previous program left off.
+        final_program_length += decimal_program_length;
     }
     // LOGGER THIS IS TEMP
     // ALL OF THE T-RECORD FIELDS ARE ENLARGED BY 1 BECAUSE I AM PRINTING THEM OUT
     // DO NOT CHANGE SINCE IT WILL BREAK THE LOGGER, I WILL FIX IT LATER ON IN THE PROJECT
-    //store value in address
-    sprintf(program_length, "%lX", decimal_load_point);
+    
+    //convert final program length into hex
+    sprintf(program_length, "%lX", final_program_length);
     //padding
     appendToSymbol(program_length, 6, "0", 1);
+
+    //creating and opening file
+    FILE* new_file;
+    char output[40];
+    char extension[5];
+    strcpy(extension, ".obj");
+    sprintf(output, "%s%s", file_name, extension);
+    new_file = fopen(output, "w");
+
+    //copying to file
     for(int x = 0; externalSymbolTable[x]; x++){
-        if (strcmp(externalSymbolTable[x]->recordType, "H") == 0){
-            printf("\n%s%s%s%s\n", externalSymbolTable[x]->recordType, externalSymbolTable[x]->Name, externalSymbolTable[x]->address, program_length);
+        if ((strcmp(externalSymbolTable[x]->recordType, "H") == 0) && (x == 0)){
+            fputs(externalSymbolTable[x]->recordType, new_file); 
+            fputs(externalSymbolTable[x]->Name, new_file); 
+            fputs(externalSymbolTable[x]->address, new_file); 
+            fputs(program_length, new_file); 
+            fputs("\n", new_file); 
         }
-        else{
+        else if (strcmp(externalSymbolTable[x]->recordType, "D") == 0){
             if (x < 2){
-                printf("%s", externalSymbolTable[x]->recordType);
+                fputs(externalSymbolTable[x]->recordType, new_file); 
             }
-            printf("%s%s", externalSymbolTable[x]->Name, externalSymbolTable[x]->address);
+            fputs(externalSymbolTable[x]->Name, new_file); 
+            fputs(externalSymbolTable[x]->address, new_file); 
         }
     }
-    printf("\n");
+    fputs("\n", new_file); 
+    //copying to file
     while(tTables != NULL){
         while(tTables->table != NULL){
-            printf("T%s%s%s\n", tTables->table->address_new, tTables->table->len, tTables->table->data);
+            fputs("T", new_file);
+            fputs(tTables->table->address_new, new_file);
+            fputs(tTables->table->len, new_file);
+            fputs(tTables->table->data, new_file);
+            fputs("\n", new_file); 
             tTables->table = tTables->table->next;
         }
         tTables = tTables->next;
     }
+    //copying to file
     while(mTables != NULL){
         while(mTables->table != NULL){
-            printf("M%s%s%s%s\n", mTables->table->address_new, mTables->table->len, mTables->table->mod_sym, mTables->table->symbol);
+            fputs("M", new_file);
+            fputs(mTables->table->address_new, new_file);
+            fputs(mTables->table->len, new_file);
+            fputs(mTables->table->mod_sym, new_file);
+            fputs(program_symbol, new_file);
+            fputs("\n", new_file); 
             mTables->table = mTables->table->next;
         }
         mTables = mTables->next;
     }
 
+    //copying to file
     while(eTables != NULL){
         while(eTables->table != NULL){
-            printf("E%s\n", eTables->table->address);
+            fputs("E", new_file);
+            fputs(eTables->table->address, new_file);
+            fputs("\n", new_file); 
+            break;
             eTables->table = eTables->table->next;
         }
+        break;
         eTables = eTables->next;
     }
     
+    //free external symbol table
+    for(int i=0; externalSymbolTable[i]; i++){
+		free(externalSymbolTable[i]);
+	}
 
+    fclose(new_file);
     free(load_point);
     fclose(fptr);
     return EXIT_SUCCESS;
