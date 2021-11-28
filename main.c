@@ -2,8 +2,6 @@
 
 void help(){
     printf("%-15s ./Linkage_Editor [relocation] [output_file] [file_to_link] [file_to_link]...\n", "Usage");
-    printf("%-15s -h, --help\n%-15s -m, --memory\n%-15s -o, --output\n%-15s -l, --links\n\n\n",
-           "Help", "Relocation", "Output File", "Files to Link");
 }
 
 int main(int argc, char* argv[]){
@@ -86,110 +84,112 @@ int main(int argc, char* argv[]){
     memset(type, '\0', 1024 * sizeof(char));
 
     // T-Tables
-    T_TABLES t_tables_base;
-    t_tables_base.table = NULL;
-    t_tables_base.next = NULL;
     T_TABLES* tTables = NULL;
     tTables = (T_TABLES*) malloc(sizeof (T_TABLES));
-    *(tTables) = t_tables_base;
+    {
+        T_TABLES t_tables_base;
+        t_tables_base.table = NULL;
+        t_tables_base.next = NULL;
+        *(tTables) = t_tables_base;
+    }
 
     // M-Tables
-    M_TABLES  m_tables_base;
-    m_tables_base.table = NULL;
-    m_tables_base.next = NULL;
     M_TABLES* mTables = NULL;
     mTables = (M_TABLES*) malloc(sizeof (M_TABLES));
-    *(mTables) = m_tables_base;
+    {
+        M_TABLES  m_tables_base;
+        m_tables_base.table = NULL;
+        m_tables_base.next = NULL;
+        *(mTables) = m_tables_base;
+    }
 
     // E-Tables
-    E_TABLES  e_tables_base;
-    e_tables_base.table = NULL;
-    e_tables_base.next = NULL;
+
     E_TABLES* eTables = NULL;
     eTables = (E_TABLES*) malloc(sizeof (E_TABLES));
-    *(eTables) = e_tables_base;
+    {
+        E_TABLES  e_tables_base;
+        e_tables_base.table = NULL;
+        e_tables_base.next = NULL;
+        *(eTables) = e_tables_base;
+    }
 
 
 
     // will loop through all of the arvs, with 0 being the program call,
-    //      2 being the output file and the rest links (TODO: latter one of them is gonna be a relocation param)
     for(int i = 2; i < argc; i++) {
-        if (i == 2) {    // linking file output creation
-            fptr = fopen(argv[i], "w"); // opening a linking file for writing
-
-            // checking if file was created/opened
-            if (fptr == NULL) {
-                printf("Error: Cannot open file - %s \n", argv[i]);
-                return EXIT_FAILURE;
-            }
-            fputs("", fptr);    // making new file
-            fclose(fptr);
-        }
-        else {   // getting all of the files to be linked
-            // T-Record Table
-            TSTAB t_table_base; // initializer
-            memset(t_table_base.address, '\000', 7);
-            memset(t_table_base.address_new, '\000', 7);
-            memset(t_table_base.len, '\000', 3);
-            memset(t_table_base.data, '\000', 61);
+        if (i != 2) {   // getting all of the files to be linked
 
             TSTAB *t_table = NULL;
             t_table = (TSTAB *) malloc(sizeof(TSTAB));
-            *(t_table) = t_table_base;
-
-            // Table for T-record table
-            T_TABLES temp_t_tables_base;
-            temp_t_tables_base.table = t_table;
-            temp_t_tables_base.next = NULL;
+            {
+                // T-Record Table
+                TSTAB t_table_base; // initializer
+                memset(t_table_base.address, '\000', 7);
+                memset(t_table_base.address_new, '\000', 7);
+                memset(t_table_base.len, '\000', 3);
+                memset(t_table_base.data, '\000', 61);
+                *(t_table) = t_table_base;
+            }
 
             T_TABLES *temp_t_tables = NULL;
             temp_t_tables = (T_TABLES *) malloc(sizeof(T_TABLES));
-            *(temp_t_tables) = temp_t_tables_base;
+            {
+                // Table for T-record table
+                T_TABLES temp_t_tables_base;
+                temp_t_tables_base.table = t_table;
+                temp_t_tables_base.next = NULL;
+                *(temp_t_tables) = temp_t_tables_base;
+            }
 
             // Adding table to tables
             AddTTable(tTables, temp_t_tables);
 
-            // M-Table
-            MSTAB  m_table_base;    // initializer
-            memset(m_table_base.address, '\000', 7);
-            memset(m_table_base.address_new, '\000', 7);
-            memset(m_table_base.len, '\000', 3);
-            memset(m_table_base.mod_sym, '\000', 2);
-            memset(m_table_base.symbol, '\000', 7);
-            m_table_base.next = NULL;
-
             MSTAB* m_table = NULL;
             m_table = (MSTAB *) malloc(sizeof (MSTAB));
-            *(m_table) = m_table_base;
-
-            // Table for M-Record table
-            M_TABLES  temp_m_table_base;
-            temp_m_table_base.table = m_table;
-            temp_m_table_base.next = NULL;
+            {
+                // M-Table
+                MSTAB  m_table_base;    // initializer
+                memset(m_table_base.address, '\000', 7);
+                memset(m_table_base.address_new, '\000', 7);
+                memset(m_table_base.len, '\000', 3);
+                memset(m_table_base.mod_sym, '\000', 2);
+                memset(m_table_base.symbol, '\000', 7);
+                m_table_base.next = NULL;
+                *(m_table) = m_table_base;
+            }
 
             M_TABLES  *temp_m_tables = NULL;
             temp_m_tables = (M_TABLES*) malloc(sizeof (M_TABLES));
-            *(temp_m_tables) = temp_m_table_base;
+            {
+                // Table for M-Record table
+                M_TABLES  temp_m_table_base;
+                temp_m_table_base.table = m_table;
+                temp_m_table_base.next = NULL;
+                *(temp_m_tables) = temp_m_table_base;
+            }
 
             AddMTable(mTables, temp_m_tables);
 
-            // E-Record Table
-            ERSTAB  e_table_base;
-            memset(e_table_base.address, '\000', 7);
-            e_table_base.next = NULL;
-
             ERSTAB* e_table = NULL;
             e_table = (ERSTAB *) malloc(sizeof (ERSTAB));
-            *(e_table) = e_table_base;
-
-            // Table for E-Record table
-            E_TABLES  temp_e_table_base;
-            temp_e_table_base.table = e_table;
-            temp_e_table_base.next = NULL;
+            {
+                // E-Record Table
+                ERSTAB  e_table_base;
+                memset(e_table_base.address, '\000', 7);
+                e_table_base.next = NULL;
+                *(e_table) = e_table_base;
+            }
 
             E_TABLES *temp_e_tables = NULL;
             temp_e_tables = (E_TABLES*) malloc(sizeof (E_TABLES));
-            *(temp_e_tables) = temp_e_table_base;
+            {
+                // Table for E-Record table
+                E_TABLES  temp_e_table_base;
+                temp_e_table_base.table = e_table;
+                temp_e_table_base.next = NULL;
+                *(temp_e_tables) = temp_e_table_base;
+            }
 
             AddETable(eTables, temp_e_tables);
 
@@ -207,7 +207,6 @@ int main(int argc, char* argv[]){
             while (fgets(buffer, 1024, fptr) != NULL) {
                 strcpy(bufferFull, buffer);
 
-                // My attempt at this
                 char *ptr_save = NULL;
                 char *single_line = NULL;
                 strcpy(line,
@@ -325,6 +324,13 @@ int main(int argc, char* argv[]){
                             temp_base.address_new[(6-len_new_add) + f] = addr_new[f];
                         }
 
+                        long check_addr = (long) strtol(temp_base.address_new, NULL, 16);
+                        int result = checkMemory(check_addr);
+                        if (result == 1){
+                            printf("ERROR: Memory limit exceeded\n");
+                            return EXIT_FAILURE;
+                        }
+
                         MSTAB *temp = NULL;
                         temp = (MSTAB *) malloc(sizeof(MSTAB));
                         *(temp) = temp_base;
@@ -342,12 +348,9 @@ int main(int argc, char* argv[]){
                          *  9-68 = object code in hex   single_line[9-68]
                          * */
                         TSTAB temp_base; // initializer
-//                        memset(temp_base.address, '\000', 6);
                         memset(temp_base.address, '\000', 7);
                         memset(temp_base.address_new, '\000', 7);
-//                        memset(temp_base.len, '\000', 2);
                         memset(temp_base.len, '\000', 3);
-//                        memset(temp_base.data, '\000', 60);
                         memset(temp_base.data, '\000', 61);
 
                         int counter_a = 0;
@@ -386,6 +389,13 @@ int main(int argc, char* argv[]){
                         // actual addr
                         for(int f = 0; f < len_new_add; f++){
                             temp_base.address_new[(6-len_new_add) + f] = addr_new[f];
+                        }
+
+                        long check_addr = (long) strtol(temp_base.address_new, NULL, 16);
+                        int result = checkMemory(check_addr);
+                        if (result == 1){
+                            printf("ERROR: Memory limit exceeded\n");
+                            return EXIT_FAILURE;
                         }
 
                         TSTAB *temp = NULL;
@@ -506,16 +516,15 @@ int main(int argc, char* argv[]){
 
                 }
             }
+            fclose(fptr);
+            fptr = NULL;
         }
         //Before the program opens the next file, it will add the program length of the previous file 
         //to calculate the address offsets. When calculating addresses of the next program, the
         //addresses will be calculated based on where the previous program left off.
         final_program_length += decimal_program_length;
     }
-    // LOGGER THIS IS TEMP
-    // ALL OF THE T-RECORD FIELDS ARE ENLARGED BY 1 BECAUSE I AM PRINTING THEM OUT
-    // DO NOT CHANGE SINCE IT WILL BREAK THE LOGGER, I WILL FIX IT LATER ON IN THE PROJECT
-    
+
     //convert final program length into hex
     sprintf(program_length, "%lX", final_program_length);
     //padding
@@ -546,53 +555,155 @@ int main(int argc, char* argv[]){
             fputs(externalSymbolTable[x]->address, new_file); 
         }
     }
-    fputs("\n", new_file); 
-    //copying to file
+    fputs("\n", new_file);
+
+    // copying to file (T-Record)
+    // temp_t and temp are declared inside the loops so that they would be disposed off after loops are over
     while(tTables != NULL){
+        T_TABLES* temp_t = NULL;
         while(tTables->table != NULL){
+            TSTAB* temp = NULL;
             fputs("T", new_file);
             fputs(tTables->table->address_new, new_file);
             fputs(tTables->table->len, new_file);
             fputs(tTables->table->data, new_file);
-            fputs("\n", new_file); 
-            tTables->table = tTables->table->next;
+            fputs("\n", new_file);
+
+            // cleaning memory
+            if(tTables->table->next != NULL){
+                temp =  tTables->table->next;
+                free(tTables->table);
+                tTables->table = NULL;
+
+                tTables->table = temp;
+            }
+            else{
+                free(temp);
+                temp = NULL;
+                free(tTables->table);
+                tTables->table = NULL;
+            }
         }
-        tTables = tTables->next;
+        // cleaning memory
+        if(tTables->next != NULL){
+            temp_t = tTables->next;
+            free(tTables);
+            tTables = NULL;
+
+            tTables = temp_t;
+        }
+        else{
+            free(temp_t);
+            temp_t = NULL;
+            free(tTables);
+            tTables = NULL;
+        }
     }
-    //copying to file
+
+    //copying to file   (M-Record)
     while(mTables != NULL){
+        M_TABLES* temp_t = NULL;
         while(mTables->table != NULL){
+            MSTAB * temp = NULL;
             fputs("M", new_file);
             fputs(mTables->table->address_new, new_file);
             fputs(mTables->table->len, new_file);
             fputs(mTables->table->mod_sym, new_file);
             fputs(program_symbol, new_file);
-            fputs("\n", new_file); 
-            mTables->table = mTables->table->next;
+            fputs("\n", new_file);
+
+            // cleaning memory
+            if(mTables->table->next != NULL){
+                temp =  mTables->table->next;
+                free(mTables->table);
+                mTables->table = NULL;
+
+                mTables->table = temp;
+            }
+            else{
+                free(temp);
+                temp = NULL;
+                free(mTables->table);
+                mTables->table = NULL;
+            }
         }
-        mTables = mTables->next;
+        // cleaning memory
+        if(mTables->next != NULL){
+            temp_t = mTables->next;
+            free(mTables);
+            mTables = NULL;
+
+            mTables = temp_t;
+        }
+        else{
+            free(temp_t);
+            temp_t = NULL;
+            free(mTables);
+            mTables = NULL;
+        }
     }
 
+
     //copying to file
+    fputs("E", new_file);
+    fputs(eTables->table->address, new_file);
+    fputs("\n", new_file);
+
+    // cleaning memory
     while(eTables != NULL){
+        E_TABLES* temp_t = NULL;
         while(eTables->table != NULL){
-            fputs("E", new_file);
-            fputs(eTables->table->address, new_file);
-            fputs("\n", new_file); 
-            break;
-            eTables->table = eTables->table->next;
+            ERSTAB* temp = NULL;
+
+            if(eTables->table->next != NULL){
+                temp =  eTables->table->next;
+                free(eTables->table);
+                eTables->table = NULL;
+
+                eTables->table = temp;
+            }
+            else{
+                free(temp);
+                temp = NULL;
+                free(eTables->table);
+                eTables->table = NULL;
+            }
         }
-        break;
-        eTables = eTables->next;
+        // cleaning memory
+        if(eTables->next != NULL){
+            temp_t = eTables->next;
+            free(eTables);
+            eTables = NULL;
+
+            eTables = temp_t;
+        }
+        else{
+            free(temp_t);
+            temp_t = NULL;
+            free(eTables);
+            eTables = NULL;
+        }
     }
     
     //free external symbol table
     for(int i=0; externalSymbolTable[i]; i++){
 		free(externalSymbolTable[i]);
+        externalSymbolTable[i] = NULL;
 	}
 
-    fclose(new_file);
+    free(type);
+    type = NULL;
+    free(address);
+    address = NULL;
+    free(symbol);
+    symbol = NULL;
+
     free(load_point);
-    fclose(fptr);
+    load_point = NULL;
+
+    fclose(new_file);
+//    free(new_file);
+    new_file = NULL;
+
     return EXIT_SUCCESS;
 }//end of main
