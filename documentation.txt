@@ -1,0 +1,21 @@
+Systems Software Project 4
+Option 2 - Linkage Editor 
+Gabriel Cardona, Iliya Kulbaka, Rohan Josh
+Documentation file
+
+
+About the Linkage Editor
+A Linker (or Linkage Editor) is defined as a computer system program that takes object modules,
+load modules, and control statements/options as input and outputs one load module. This file can 
+be stored in a libary and then loaded for execution later. The linker does this process by combining
+the input modules using the requirements given by the options and the control statements. 
+
+How our linker works
+Our linker requires a minimum of 4 parameters: 
+    1. The relocation address
+    2. The name of the output file
+    3 and up. The names of the object files that need to be linked.
+The program involves two passes. In pass 1, it loops through the provided object files one by one and 
+gathers and categorizes the M, T, D, H and E records and stores them in separate symbol tables. In pass 2, 
+the H record is taken from the symbol table and written to the new file. Then the following M, T, and D
+records are added, ending with the E records.
