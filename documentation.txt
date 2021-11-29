@@ -9,8 +9,7 @@ A Linking Loader is defined as a computer system program that combines the conce
 of linking and loading. In linking, the program and other libraries that it makes use of must be brought
 together and in loading, the linked program must be moved to memory and have addresses assigned to the data.
 The linking loader is most commonly used in machines like SIC/XE because the presence of relative addressing
-renders relocation unnecessary for most instructions. The linking loader takes a set of object files as input
-and outputs ...
+renders relocation unnecessary for most instructions. The linking loader takes a set of object files as input.
 
 How our linker works
 Our linking loader requires a minimum of 4 parameters: 
