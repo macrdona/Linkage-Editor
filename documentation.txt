@@ -4,18 +4,24 @@ Gabriel Cardona, Iliya Kulbaka, Rohan Josh
 Documentation file
 
 
-About the Linkage Editor
-A Linker (or Linkage Editor) is defined as a computer system program that takes object modules,
-load modules, and control statements/options as input and outputs one load module. This file can 
-be stored in a libary and then loaded for execution later. The linker does this process by combining
-the input modules using the requirements given by the options and the control statements. 
+About the Linking Loader
+A Linking Loader is defined as a computer system program that combines the conceptually separate processes 
+of linking and loading. In linking, the program and other libraries that it makes use of must be brought
+together and in loading, the linked program must be moved to memory and have addresses assigned to the data.
+The linking loader is most commonly used in machines like SIC/XE because the presence of relative addressing
+renders relocation unnecessary for most instructions. The linking loader takes a set of object files as input
+and outputs ...
 
 How our linker works
-Our linker requires a minimum of 4 parameters: 
+Our linking loader requires a minimum of 4 parameters: 
     1. The relocation address
     2. The name of the output file
     3 and up. The names of the object files that need to be linked.
 The program involves two passes. In pass 1, it loops through the provided object files one by one and 
-gathers and categorizes the M, T, D, H and E records and stores them in separate symbol tables. In pass 2, 
-the H record is taken from the symbol table and written to the new file. Then the following M, T, and D
-records are added, ending with the E records.
+gathers and categorizes the M, T, D, H and E records, stores them, and assigns addresses to the external symbols. 
+In pass 2, the actual linking and loading is done. We make use of multiple symbol tables, to store the external 
+symbols as well as the records. We also maintain two big variables: the program load address and the control
+section address. The first of this (program load address) contains the starting address in memory where the 
+linked program is supposed to be loaded. The second (control section address) contains the starting address that
+is assigned to the control section. 
+
